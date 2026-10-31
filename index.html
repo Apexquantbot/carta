@@ -169,28 +169,6 @@ footer{padding:8px 16px 40px;color:var(--suave);font-size:14px}
 .pin:focus{outline:none;border-color:var(--turquesa)}
 .error{color:var(--aviso);font-weight:700;font-size:14px;min-height:20px;margin:0 0 10px}
 
-/* ===== Lista «Lo que quiero» ===== */
-.lado{display:flex;align-items:center;gap:8px;flex:none}
-.mas{flex:none;width:30px;height:30px;border-radius:50%;border:0;background:var(--turquesa);color:var(--sobre-turquesa);font-size:20px;font-weight:700;line-height:1;cursor:pointer;display:grid;place-items:center}
-.opc{border:0;cursor:pointer}
-.opc .mas-peq{display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--turquesa);color:var(--sobre-turquesa);font-size:13px;font-weight:800;margin-left:2px}
-#barraPedido{position:fixed;left:0;right:0;bottom:0;z-index:15;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));pointer-events:none}
-#barraPedido button{pointer-events:auto;max-width:532px;margin:0 auto;width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;
-  padding:13px 18px;border-radius:999px;border:0;background:var(--tinta);color:var(--fondo);font-weight:800;font-size:15.5px;cursor:pointer;box-shadow:0 8px 24px rgba(6,25,30,.28)}
-#barraPedido .num{display:inline-grid;place-items:center;min-width:24px;height:24px;padding:0 6px;border-radius:999px;background:var(--piruleta);color:#fff;font-size:13px;margin-right:8px}
-body.con-pedido footer{padding-bottom:110px}
-body.con-pedido #bocadillo{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
-.lineas{margin:4px 0 10px}
-.linea{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--linea)}
-.linea .nom{flex:1;min-width:0;font-size:17px;font-weight:700;line-height:1.25}
-.linea .nom small{display:block;font-size:14px;font-weight:600;color:var(--suave)}
-.cant{display:flex;align-items:center;gap:6px}
-.cant button{width:32px;height:32px;border-radius:50%;border:1.5px solid var(--linea);background:var(--fondo);font-size:18px;font-weight:800;cursor:pointer;color:var(--tinta)}
-.cant span{min-width:20px;text-align:center;font-weight:800;font-size:17px}
-.linea .imp{min-width:64px;text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
-.total{display:flex;justify-content:space-between;align-items:baseline;margin:6px 0 14px;font-size:18px;font-weight:800}
-.total b{font-family:"Baloo 2",sans-serif;font-size:26px;color:var(--piruleta)}
-
 /* ===== Etiquetas ===== */
 .etqs{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 4px}
 .etq{display:inline-block;margin:0;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:800;letter-spacing:.01em}
@@ -329,8 +307,6 @@ body.con-pedido #bocadillo{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
   <div class="pie-foto"><strong id="tFoto"></strong><button class="boton" type="button" id="cerrarFoto">Cerrar</button></div>
 </div>
 
-<div id="barraPedido" hidden><button type="button" id="abrirPedido"></button></div>
-
 <div class="hoja" id="hojaSellos" role="dialog" aria-modal="true" aria-labelledby="tSellos">
   <h4 id="tSellos">Tu tarjeta de sellos</h4>
   <p id="textoSellos"></p>
@@ -351,17 +327,6 @@ body.con-pedido #bocadillo{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
   <div class="botones">
     <button class="boton" type="button" data-cerrar>Cancelar</button>
     <button class="boton lleno" type="button" id="confirmarPin">Confirmar</button>
-  </div>
-</div>
-
-<div class="hoja" id="hojaPedido" role="dialog" aria-modal="true" aria-labelledby="tPedido">
-  <h4 id="tPedido">Lo que quiero</h4>
-  <p>Enseña esta pantalla a quien te atienda.</p>
-  <div class="lineas" id="lineas"></div>
-  <div class="total"><span>Total aproximado</span><b id="totalPedido"></b></div>
-  <div class="botones">
-    <button class="boton" type="button" id="vaciarPedido">Vaciar lista</button>
-    <button class="boton lleno" type="button" data-cerrar>Seguir mirando</button>
   </div>
 </div>
 
@@ -542,7 +507,6 @@ const leer = (k,def) => { try{ const v = localStorage.getItem(k); return v ? JSO
 
 let misAlergias = leer("piruleta_alergias", []);
 const FOTOS = [];
-const PRODUCTOS = {};
 
 function pintarCarta(){
   let html = "", nav = "";
@@ -556,9 +520,8 @@ function pintarCarta(){
       const codigos = (pl.a||"").split(" ").filter(Boolean);
       const mias = codigos.filter(c => misAlergias.includes(c));
       let precio = "", opcs = "";
-      pl.p.forEach(([t,v], j) => { PRODUCTOS[`${sec.id}|${iPl}|${j}`] = {n: pl.n, v: t, precio: v}; });
-      if (pl.p.length === 1) precio = `<div class="lado"><span class="precio">${euro(pl.p[0][1])}</span><button class="mas" type="button" data-add="${sec.id}|${iPl}|0" aria-label="Añadir ${esc(pl.n)} a mi lista">+</button></div>`;
-      else if (pl.p.length > 1) opcs = `<div class="opcs">${pl.p.map(([t,v], j) => `<button type="button" class="opc" data-add="${sec.id}|${iPl}|${j}" aria-label="Añadir ${esc(pl.n)}, ${esc(t)}, a mi lista">${esc(t)} <b>${euro(v)}</b><span class="mas-peq" aria-hidden="true">+</span></button>`).join("")}</div>`;
+      if (pl.p.length === 1) precio = `<span class="precio">${euro(pl.p[0][1])}</span>`;
+      else if (pl.p.length > 1) opcs = `<div class="opcs">${pl.p.map(([t,v]) => `<span class="opc">${esc(t)} <b>${euro(v)}</b></span>`).join("")}</div>`;
       let mini = "";
       if (pl.f){ FOTOS.push([pl.f, pl.n]); mini = `<button class="miniatura" type="button" data-foto="${FOTOS.length-1}" aria-label="Ver foto: ${esc(pl.n)}"><img src="${pl.f}" alt="" loading="lazy" decoding="async"></button>`; }
       const alerg = codigos.length
@@ -641,13 +604,6 @@ document.addEventListener("keydown", e => { if (e.key === "Escape") cerrar(); })
 /* Toques dentro de la carta: fotos e iconos */
 let tBocadillo;
 document.getElementById("carta").addEventListener("click", e => {
-  const add = e.target.closest("[data-add]");
-  if (add){
-    const k = add.dataset.add;
-    pedido[k] = (pedido[k] || 0) + 1; guardar("piruleta_pedido", pedido); pintarBarra();
-    const pr = PRODUCTOS[k]; avisar("Añadido: " + pr.n + (pr.v ? " (" + pr.v.toLowerCase() + ")" : ""));
-    return;
-  }
   const f = e.target.closest("[data-foto]");
   if (f){
     const [src, titulo] = FOTOS[+f.dataset.foto];
@@ -820,37 +776,6 @@ document.getElementById("confirmarPin").onclick = confirmarPin;
 document.getElementById("pin").addEventListener("keydown", e => { if (e.key === "Enter") confirmarPin(); });
 pintarSellos();
 
-/* ================= Lista «Lo que quiero» ================= */
-let pedido = leer("piruleta_pedido", {});
-function limpiarPedido(){ for (const k in pedido) if (!PRODUCTOS[k] || pedido[k] <= 0) delete pedido[k]; }
-function pintarBarra(){
-  limpiarPedido();
-  const claves = Object.keys(pedido);
-  const unidades = claves.reduce((s,k) => s + pedido[k], 0);
-  const total = claves.reduce((s,k) => s + pedido[k] * PRODUCTOS[k].precio, 0);
-  const barra = document.getElementById("barraPedido");
-  barra.hidden = unidades === 0;
-  document.body.classList.toggle("con-pedido", unidades > 0);
-  document.getElementById("abrirPedido").innerHTML = `<span><span class="num">${unidades}</span>Lo que quiero</span><span>${euro(total)}</span>`;
-  document.getElementById("lineas").innerHTML = claves.map(k => {
-    const pr = PRODUCTOS[k];
-    return `<div class="linea"><div class="nom">${esc(pr.n)}${pr.v ? `<small>${esc(pr.v)}</small>` : ""}</div>
-      <div class="cant"><button type="button" data-menos="${k}" aria-label="Quitar uno">−</button><span>${pedido[k]}</span><button type="button" data-mas="${k}" aria-label="Añadir uno">+</button></div>
-      <div class="imp">${euro(pedido[k] * pr.precio)}</div></div>`;
-  }).join("");
-  document.getElementById("totalPedido").textContent = euro(total);
-}
-document.getElementById("abrirPedido").onclick = () => { pintarBarra(); abrir("hojaPedido"); };
-document.getElementById("lineas").addEventListener("click", e => {
-  const m = e.target.closest("[data-mas]"), r = e.target.closest("[data-menos]");
-  if (m){ pedido[m.dataset.mas]++; }
-  else if (r){ pedido[r.dataset.menos]--; }
-  else return;
-  guardar("piruleta_pedido", pedido); pintarBarra();
-  if (!Object.keys(pedido).length) cerrar();
-});
-document.getElementById("vaciarPedido").onclick = () => { pedido = {}; guardar("piruleta_pedido", pedido); pintarBarra(); cerrar(); };
-
 /* ================= Encargos por WhatsApp ================= */
 const pad = n => String(n).padStart(2, "0");
 function fechaISO(d){ return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate()); }
@@ -949,7 +874,7 @@ document.getElementById("cerrarBuscar").onclick = () => {
 q.addEventListener("input", () => { filtrar(); subirACarta(); });
 
 pintarCarta();
-pintarBarra();
+try { localStorage.removeItem("piruleta_pedido"); } catch(e){}
 </script>
 </body>
 </html>
